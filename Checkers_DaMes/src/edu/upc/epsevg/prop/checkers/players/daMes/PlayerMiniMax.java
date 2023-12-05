@@ -35,6 +35,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
         // Nothing to do! I'm so fast, I never timeout 8-)
         
     }
+    
 
     /**
      * Donat un node fulla, retorna la llista de punts que contenen el propi
@@ -102,10 +103,11 @@ public class PlayerMiniMax implements IPlayer, IAuto {
             //Recorrer possibles fills i cridar recursivament a minimax
             List<MoveNode> movs = s.getMoves();
             for (MoveNode mov : movs){
+                mov = s.getMoves(mov.getPoint(), s.getCurrentPlayer());
                 List<List<Point>> moviments = new ArrayList<>();
                 moviments = llistaPunts(mov, moviments);
                 for (List<Point> moviment : moviments){
-                    if (beta > alpha){
+                    if (beta > alpha ){
                         GameStatus s2 = new GameStatus(s);
                         s2.movePiece(moviment);
                         h = minimax(s2, prof+1, alpha, beta);
@@ -120,6 +122,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
             if (prof % 2 == 0) h = alpha;
             else h = beta;
         }
+        
         return h;
     }
     

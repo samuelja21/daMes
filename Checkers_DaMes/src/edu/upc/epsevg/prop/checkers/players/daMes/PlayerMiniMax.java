@@ -8,6 +8,7 @@ import edu.upc.epsevg.prop.checkers.MoveNode;
 import edu.upc.epsevg.prop.checkers.PlayerMove;
 import edu.upc.epsevg.prop.checkers.PlayerType;
 import edu.upc.epsevg.prop.checkers.SearchType;
+import edu.upc.epsevg.prop.checkers.players.daMes.Heuristica;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
     private String name;
     private GameStatus s;
     private int maxprof;
+    private PlayerType jugador;
     List<Point> millor_moviment = new ArrayList<>();
 
     public PlayerMiniMax(String name, int profunditat) {
@@ -31,6 +33,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
     @Override
     public void timeout() {
         // Nothing to do! I'm so fast, I never timeout 8-)
+        
     }
 
     /**
@@ -108,7 +111,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
                         h = minimax(s2, prof+1, alpha, beta);
                         if (prof % 2 == 0 && h > alpha) {
                             alpha = h;
-                            millor_moviment = moviment;
+                            if (prof == 0) millor_moviment = moviment;
                         }
                         else if (prof % 2 != 0 && h < beta) beta = h;
                     }
@@ -129,7 +132,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
      */
     @Override
     public PlayerMove move(GameStatus s) {
-        
+        jugador = s.getCurrentPlayer();
         minimax(s, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
         return new PlayerMove( millor_moviment, 0L, 0, SearchType.MINIMAX);         
     }
@@ -140,7 +143,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
      */
     @Override
     public String getName() {
-        return "Random(" + name + ")";
+        return "MinMax(" + name + ")";
     }
 
 }

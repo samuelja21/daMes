@@ -30,31 +30,20 @@ public class Heuristica {
         this.jugador = p;
     }
     
-     /**
-     * Retorna true quan hi ha una fitxa del jugador a la casella del paràmetre.
-     *
-     * @param casella Casella que volem comprovar.
-     * @return cert si a la casella hi ha una fitxa del nostre jugador.
-     */
-    public boolean fitxaJugador(CellType casella){
-        boolean fitxaPlayer = false;
-        if (jugador == PlayerType.PLAYER1){
-            fitxaPlayer = casella == CellType.P1 || casella == CellType.P1Q;
+    public int fitxesVeines(int x, int y, PlayerType player){
+        int f = 0;
+        if (x > 1){
+            if (tauler.getPos(x-2, y).getPlayer() == player) ++f;
+            if (y < (tauler.getSize() - 2) && tauler.getPos(x-2, y+2).getPlayer() == player) ++f;
+            if (y > 1 && tauler.getPos(x-2, y-2).getPlayer() == player) ++f;
         }
-        else {
-            fitxaPlayer = casella == CellType.P2 || casella == CellType.P2Q;
+        if (x < tauler.getSize()-2){
+            if (tauler.getPos(x+2, y).getPlayer() == player) ++f;
+            if (y < (tauler.getSize() - 2) && tauler.getPos(x+2, y+2).getPlayer() == player) ++f;
+            if (y > 1 && tauler.getPos(x+2, y-2).getPlayer() == player) ++f;
         }
-        return fitxaPlayer;
-    }
-    
-     /**
-     * Retorna true quan hi ha una reina a la casella del paràmetre.
-     *
-     * @param casella Casella que volem comprovar.
-     * @return cert si a la casella hi ha una reina.
-     */
-    public boolean esReina (CellType casella){
-        return (casella == CellType.P2Q || casella == CellType.P1Q);
+        
+        return f;
     }
     
     public int valor_heuristica(){
@@ -71,41 +60,37 @@ public class Heuristica {
         else {
         //no ha acabat la partida
         
-            for (int i = 0; i < tauler.getSize(); ++i){
-                for (int j = 0; j < tauler.getSize(); ++j){
+            for (int j = 0; j < tauler.getSize(); ++j){
+                for (int i = 0; i < tauler.getSize(); ++i){
                     CellType casella_actual = tauler.getPos(i,j);
                     if (casella_actual != CellType.EMPTY){
                     //Si la casella que estem visitant té una fitxa
                         PlayerType player = casella_actual.getPlayer();
                         MoveNode moviments = tauler.getMoves(new Point(i,j), player);
+                        
                         if (player == jugador){
-                            if (casella_actual.isQueen()) h += 4;
-                            else h += 1;
-                            if (moviments.isJump()) h += 2;
+                            if (casella_actual.isQueen()) h += 5;
+                            else{ 
+                                h += 1; //Suma 1 fitxa
+                                if (i > 0 && i < (tauler.getSize() - 1)) h+=2; //Bonificació per posicions intermitges
+                                if (tauler.getYDirection(player) == 1 && j > tauler.getSize()/4) h += 2; //Bonificació per aproparse al final
+                                if (tauler.getYDirection(player) == -1 && j < tauler.getSize()*3/4) h += 2; //Bonificació per aproparse al final
+                            }
+                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()) h += 5; //Suma 5 per cada fitxa que pugui matar
+                            h += moviments.getChildren().size(); //Suma els moviments possibles
                         }
                         else {
-                            if (casella_actual.isQueen()) h -= 4;
-                            else h -= 1;
-                            if (moviments.isJump()) h -= 2;
-                        }
-                        
-                        
-                    /*
-                        PlayerType player = fitxaCasella(casella_actual);
-                        MoveNode moviments = tauler.getMoves(new Point(i,j), player);
-                        if (!moviments.getChildren().isEmpty()) {
-                            if (player == jugador){
-                                h += moviments.getChildren().size();
+                            if (casella_actual.isQueen()) h -= 6;
+                            else{ 
+                                h -= 1; 
+                                if (i > 0 && i < (tauler.getSize() - 1)) h-=2;
+                                if (tauler.getYDirection(player) == 1 && j > tauler.getSize()/4) h -= 2; 
+                                if (tauler.getYDirection(player) == -1 && j < tauler.getSize()*3/4) h -= 2;
                             }
-                            else {
-                                h -= moviments.getChildren().size();
-                            }
-                            
+                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()) h -= 6;
+                            h -= moviments.getChildren().size();
                         }
-                        */        
-                        
                     }
-                    
                 }
             }
         }

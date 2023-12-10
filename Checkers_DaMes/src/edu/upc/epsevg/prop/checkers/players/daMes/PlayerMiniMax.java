@@ -97,7 +97,8 @@ public class PlayerMiniMax implements IPlayer, IAuto {
         int h = 0;
         if (prof == maxprof || s.isGameOver()){
             //retorna heuristica
-            h = s.getScore(PlayerType.PLAYER1) - s.getScore(PlayerType.PLAYER2);
+            Heuristica heur = new Heuristica(s, jugador);
+            h = heur.valor_heuristica();
         }
         else {
             //Recorrer possibles fills i cridar recursivament a minimax
@@ -107,6 +108,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
                 List<List<Point>> moviments = new ArrayList<>();
                 moviments = llistaPunts(mov, moviments);
                 for (List<Point> moviment : moviments){
+                    //System.out.println(moviment.toString());
                     if (beta > alpha ){
                         GameStatus s2 = new GameStatus(s);
                         s2.movePiece(moviment);

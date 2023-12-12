@@ -47,6 +47,7 @@ public class ElMeuStatus extends GameStatus {
                 }
             }
         }
+        if (jugadorTurn == PlayerType.PLAYER2) h = h ^ p2move;
         
         return h;
     

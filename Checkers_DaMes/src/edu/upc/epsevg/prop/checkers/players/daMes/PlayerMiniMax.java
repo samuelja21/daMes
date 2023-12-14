@@ -93,38 +93,47 @@ public class PlayerMiniMax implements IPlayer, IAuto {
      * @return valor de la heuristica escollida.
      */
     public int minimax(GameStatus s, int prof, int alpha, int beta){
-        //comprovar si es fulla
         int h = 0;
+        int millor_h = 0;
         if (prof == maxprof || s.isGameOver()){
             //retorna heuristica
             Heuristica heur = new Heuristica(s, jugador);
             h = heur.valor_heuristica();
         }
         else {
-            //Recorrer possibles fills i cridar recursivament a minimax
+            if (prof % 2 == 0){
+            //Si MAX
+                millor_h = Integer.MIN_VALUE;
+            } 
+            else {
+            //Si MIN
+                millor_h = Integer.MAX_VALUE;
+            }
             List<MoveNode> movs = s.getMoves();
             for (MoveNode mov : movs){
                 mov = s.getMoves(mov.getPoint(), s.getCurrentPlayer());
                 List<List<Point>> moviments = new ArrayList<>();
                 moviments = llistaPunts(mov, moviments);
                 for (List<Point> moviment : moviments){
-                    //System.out.println(moviment.toString());
-                    if (beta > alpha ){
+                    if (beta > alpha){
                         GameStatus s2 = new GameStatus(s);
                         s2.movePiece(moviment);
-                        h = minimax(s2, prof+1, alpha, beta);
-                        if (prof % 2 == 0 && h > alpha) {
-                            alpha = h;
+                        h = minimax(s2, prof+1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                        if (prof % 2 == 0) {
+                            millor_h = Math.max(millor_h, h);
+                            alpha = Math.max(alpha, millor_h);
                             if (prof == 0) millor_moviment = moviment;
                         }
-                        else if (prof % 2 != 0 && h < beta) beta = h;
+                        else {
+                            millor_h = Math.min(millor_h, h);
+                            beta = Math.min(beta, millor_h);
+                        }
                     }
                 }
             }
-            if (prof % 2 == 0) h = alpha;
-            else h = beta;
+            h = millor_h;
         }
-        
+        //System.out.println("A profunditat: " + prof + " heuristica = " + h);
         return h;
     }
     

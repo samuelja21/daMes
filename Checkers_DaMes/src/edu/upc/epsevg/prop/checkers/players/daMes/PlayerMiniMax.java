@@ -95,6 +95,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
     public int minimax(GameStatus s, int prof, int alpha, int beta){
         int h = 0;
         int millor_h = 0;
+        //Comprova si es fulla
         if (prof == maxprof || s.isGameOver()){
             //retorna heuristica
             Heuristica heur = new Heuristica(s, jugador);
@@ -120,9 +121,9 @@ public class PlayerMiniMax implements IPlayer, IAuto {
                         s2.movePiece(moviment);
                         h = minimax(s2, prof+1, Integer.MIN_VALUE, Integer.MAX_VALUE);
                         if (prof % 2 == 0) {
+                            if (prof == 0 && h > millor_h) millor_moviment = moviment;
                             millor_h = Math.max(millor_h, h);
                             alpha = Math.max(alpha, millor_h);
-                            if (prof == 0) millor_moviment = moviment;
                         }
                         else {
                             millor_h = Math.min(millor_h, h);
@@ -135,6 +136,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
         }
         //System.out.println("A profunditat: " + prof + " heuristica = " + h);
         return h;
+     
     }
     
     /**

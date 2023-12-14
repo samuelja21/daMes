@@ -48,6 +48,13 @@ public class Heuristica {
     
     public int valor_heuristica(){
         int h = 0;
+        int[] fitxes = new int[2];
+        int[] reines = new int[2];
+        int[] ultima_fila = new int[2];
+        int[] extrems_centre = new int[2];
+        int[] centre_tauler = new int[2];
+        int[] salts = new int[2];
+        int[] protegides = new int[2];
         if (tauler.checkGameOver()){
         //algu guanya
             if (tauler.GetWinner() == jugador) return Integer.MAX_VALUE-1;
@@ -59,43 +66,72 @@ public class Heuristica {
         }
         else {
         //no ha acabat la partida
-        
+            List<Point> fitxesSaltables = new ArrayList<>();
+            PlayerType rival = PlayerType.PLAYER2;
+            if (jugador == PlayerType.PLAYER2) rival = PlayerType.PLAYER1;
+            protegides[0] = tauler.getScore(jugador);
+            protegides[1] = tauler.getScore(rival);
+            h += tauler.getScore(jugador);
+            h -= tauler.getScore(rival);
             for (int j = 0; j < tauler.getSize(); ++j){
                 for (int i = 0; i < tauler.getSize(); ++i){
                     CellType casella_actual = tauler.getPos(i,j);
                     if (casella_actual != CellType.EMPTY){
-                    //Si la casella que estem visitant té una fitxa
                         PlayerType player = casella_actual.getPlayer();
                         MoveNode moviments = tauler.getMoves(new Point(i,j), player);
-                        
-                        if (player == jugador){
-                            if (casella_actual.isQueen()) h += 5;
-                            else{ 
-                                h += 1; //Suma 1 fitxa
-                                if (i > 0 && i < (tauler.getSize() - 1)) h+=2; //Bonificació per posicions intermitges
-                                if (tauler.getYDirection(player) == 1 && j > tauler.getSize()/4) h += 2; //Bonificació per aproparse al final
-                                if (tauler.getYDirection(player) == -1 && j < tauler.getSize()*3/4) h += 2; //Bonificació per aproparse al final
+                        if (player == jugador){ 
+                            if (casella_actual.isQueen()){ ++reines[0]; h += 8;}
+                            else ++fitxes[0]; h+= 4;
+                            if (j == 0 && tauler.getYDirection(player) == 1) ++ultima_fila[0]; h += 1;
+                            if (j == tauler.getSize()-1 && tauler.getYDirection(player) == -1) ++ultima_fila[0]; h += 1;
+                            if (j == 3 || j == 4) {
+                                if (i >= 2 && i <= 5){ ++centre_tauler[0]; h+= 2;}
+                                else ++extrems_centre[0]; h+= 1;
                             }
-                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()) h += 5; //Suma 5 per cada fitxa que pugui matar
-                            h += moviments.getChildren().size(); //Suma els moviments possibles
+                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()){
+                                ++salts[0];
+                                h += 3;
+                                Point jumpedPoint = moviments.getChildren().get(0).getJumpedPoint();
+                                if (!fitxesSaltables.contains(jumpedPoint)){
+                                    fitxesSaltables.add(jumpedPoint);
+                                    --protegides[1];
+                                    h += 3;
+                                }
+                            }
                         }
                         else {
-                            if (casella_actual.isQueen()) h -= 6;
-                            else{ 
-                                h -= 1; 
-                                if (i > 0 && i < (tauler.getSize() - 1)) h-=2;
-                                if (tauler.getYDirection(player) == 1 && j > tauler.getSize()/4) h -= 2; 
-                                if (tauler.getYDirection(player) == -1 && j < tauler.getSize()*3/4) h -= 2;
+                            if (casella_actual.isQueen()){ ++reines[1]; h -= 8;}
+                            else ++fitxes[1]; h -= 4;
+                            if (j == 0 && tauler.getYDirection(player) == 1){ ++ultima_fila[1]; h -= 1;}
+                            if (j == tauler.getSize()-1 && tauler.getYDirection(player) == -1) ++ultima_fila[1]; h-= 1;
+                            if (j == 3 || j == 4) {
+                                if (i >= 2 && i <= 5){ ++centre_tauler[1]; h-=2;}
+                                else ++extrems_centre[1];h-=1;
                             }
-                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()) h -= 6;
-                            h -= moviments.getChildren().size();
+                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()){
+                                ++salts[1];
+                                h -= 3;
+                                Point jumpedPoint = moviments.getChildren().get(0).getJumpedPoint();
+                                if (!fitxesSaltables.contains(jumpedPoint)){
+                                    fitxesSaltables.add(jumpedPoint);
+                                    --protegides[0];
+                                    h -= 3;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-
+        /*
+        System.out.println("Fitxes jugador = " + fitxes[0] + " fitxes rival = " + fitxes[1]);
+        System.out.println("Reines jugador = " + reines[0] + " reines rival = " + reines[1]);
+        System.out.println("Fitxes jugador protegides = " + protegides[0] + " fitxes rival protegides = " + protegides[1]);
+        System.out.println("Fitxes jugador ultima fila = " + ultima_fila[0] + " fitxes rival ultima fila = " + ultima_fila[1]);
+        System.out.println("Fitxes jugador extrems centre = " + extrems_centre[0] + " fitxes rival extrems centre = " + extrems_centre[1]);
+        System.out.println("Fitxes jugador centre tauler = " + centre_tauler[0] + " fitxes rival centre tauler = " + centre_tauler[1]);
+        System.out.println("Fitxes jugador que poden matar = " + salts[0] + " fitxes rival que poden matar = " + salts[1]);
+        */
         return h;
-    }
-    
+    }   
 }

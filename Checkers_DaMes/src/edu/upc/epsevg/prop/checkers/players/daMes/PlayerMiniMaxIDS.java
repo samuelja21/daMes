@@ -17,24 +17,24 @@ import java.util.List;
  * Jugador MiniMax
  * @author Samuel i Oriol (DA+)
  */
-public class PlayerMiniMax implements IPlayer, IAuto {
+public class PlayerMiniMaxIDS implements IPlayer, IAuto {
 
     private String name;
     private GameStatus s;
-    private int maxprof; //profunditat maxima que li passem per paràmetre
-    private int prof_maxima; //profunditat a la que arriba el minimax, generalment serà = maxprof.
+    private int maxprof;
+    private int prof_maxima; 
     private int nodes_explorats;
     private PlayerType jugador;
+    boolean timeout;
     List<Point> millor_moviment = new ArrayList<>();
 
-    public PlayerMiniMax(int profunditat) {
-        this.name = "DaMes";
-        this.maxprof = profunditat;
+    public PlayerMiniMaxIDS() {
+        name = "DaMesIDS";
     }
 
     @Override
     public void timeout() {
-        
+        timeout = true;
     }
     
 
@@ -94,48 +94,52 @@ public class PlayerMiniMax implements IPlayer, IAuto {
      * @return valor de la heuristica escollida.
      */
     public int minimax(GameStatus s, int prof, int alpha, int beta){
-        prof_maxima = Math.max(prof_maxima, prof);
         int h = 0;
-        int millor_h = 0;
-        //Comprova si es fulla
-        if (prof == maxprof || s.isGameOver()){
-            //retorna heuristica
-            Heuristica heur = new Heuristica(s, jugador);
-            h = heur.valor_heuristica();
-            ++nodes_explorats;
-        }
-        else {
-            if (prof % 2 == 0){
-            //Si MAX
-                millor_h = Integer.MIN_VALUE;
-            } 
-            else {
-            //Si MIN
-                millor_h = Integer.MAX_VALUE;
+        if (!timeout){
+            prof_maxima = Math.max(prof_maxima, prof);
+            int millor_h = 0;
+            //Comprova si es fulla
+            if (prof == maxprof || s.isGameOver()){
+                //retorna heuristica
+                Heuristica heur = new Heuristica(s, jugador);
+                h = heur.valor_heuristica();
+                ++nodes_explorats;
             }
-            List<MoveNode> movs = s.getMoves();
-            for (MoveNode mov : movs){
-                mov = s.getMoves(mov.getPoint(), s.getCurrentPlayer());
-                List<List<Point>> moviments = new ArrayList<>();
-                moviments = llistaPunts(mov, moviments);
-                for (List<Point> moviment : moviments){
-                    if (beta > alpha){
-                        GameStatus s2 = new GameStatus(s);
-                        s2.movePiece(moviment);
-                        h = minimax(s2, prof+1, Integer.MIN_VALUE, Integer.MAX_VALUE);
-                        if (prof % 2 == 0) {
-                            if (prof == 0 && h > millor_h) millor_moviment = moviment;
-                            millor_h = Math.max(millor_h, h);
-                            alpha = Math.max(alpha, millor_h);
-                        }
-                        else {
-                            millor_h = Math.min(millor_h, h);
-                            beta = Math.min(beta, millor_h);
+            else {
+                if (prof % 2 == 0){
+                //Si MAX
+                    millor_h = Integer.MIN_VALUE;
+                } 
+                else {
+                //Si MIN
+                    millor_h = Integer.MAX_VALUE;
+                }
+                List<MoveNode> movs = s.getMoves();
+                for (MoveNode mov : movs){
+                    mov = s.getMoves(mov.getPoint(), s.getCurrentPlayer());
+                    List<List<Point>> moviments = new ArrayList<>();
+                    moviments = llistaPunts(mov, moviments);
+                    for (List<Point> moviment : moviments){
+                        if (!timeout){
+                            if (beta > alpha){
+                                GameStatus s2 = new GameStatus(s);
+                                s2.movePiece(moviment);
+                                h = minimax(s2, prof+1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                                if (prof % 2 == 0) {
+                                    if (prof == 0 && h > millor_h) millor_moviment = moviment;
+                                    millor_h = Math.max(millor_h, h);
+                                    alpha = Math.max(alpha, millor_h);
+                                }
+                                else {
+                                    millor_h = Math.min(millor_h, h);
+                                    beta = Math.min(beta, millor_h);
+                                }
+                            }
                         }
                     }
                 }
+                h = millor_h;
             }
-            h = millor_h;
         }
         //System.out.println("A profunditat: " + prof + " heuristica = " + h);
         return h;
@@ -151,11 +155,24 @@ public class PlayerMiniMax implements IPlayer, IAuto {
      */
     @Override
     public PlayerMove move(GameStatus s) {
+        timeout = false;
         jugador = s.getCurrentPlayer();
         nodes_explorats = 0;
         prof_maxima = 0;
-        minimax(s, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
-        return new PlayerMove( millor_moviment, nodes_explorats, prof_maxima, SearchType.MINIMAX);         
+        maxprof = 0;
+        List<Point> moviment_seleccionat = new ArrayList<>();
+        int maxprof_acabada = 0;
+        while (!timeout){
+            ++maxprof;
+            minimax(s, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            if (!timeout) {
+                moviment_seleccionat = millor_moviment;
+                maxprof_acabada = prof_maxima;
+            }
+                
+        }
+        
+        return new PlayerMove( moviment_seleccionat, nodes_explorats, maxprof_acabada, SearchType.MINIMAX);        
     }
 
     /**

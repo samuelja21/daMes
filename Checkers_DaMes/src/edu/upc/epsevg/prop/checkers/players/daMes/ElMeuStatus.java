@@ -13,7 +13,8 @@ import java.util.Random;
 public class ElMeuStatus extends GameStatus {
     
     int hpp[][][] = new int[8][8][4];
-    int p2move;
+    int p2move; //diferenciador
+    int hash;
     
     public ElMeuStatus(int [][] tauler){
         super(tauler);
@@ -21,6 +22,7 @@ public class ElMeuStatus extends GameStatus {
     
      public ElMeuStatus(GameStatus gs){
         super(gs);
+        init_Zobrist();
     }
     
     public void init_Zobrist(){
@@ -37,7 +39,8 @@ public class ElMeuStatus extends GameStatus {
         p2move = rand.nextInt();
     }
     
-    public int getHash(PlayerType jugadorTurn){
+    public void getHashCode(){
+        PlayerType jugadorTurn = this.getCurrentPlayer();
         int h = 0;
         for (int i = 0; i < this.getSize(); ++i){
             for (int j = 0; j < this.getSize(); ++j){
@@ -49,8 +52,11 @@ public class ElMeuStatus extends GameStatus {
         }
         if (jugadorTurn == PlayerType.PLAYER2) h = h ^ p2move;
         
-        return h;
+        hash = h;
+    }
     
+    public int hashCode(){
+        return hash;
     }
     
     public int numFitxa(CellType c){

@@ -9,8 +9,12 @@ import edu.upc.epsevg.prop.checkers.PlayerMove;
 import edu.upc.epsevg.prop.checkers.PlayerType;
 import edu.upc.epsevg.prop.checkers.SearchType;
 import edu.upc.epsevg.prop.checkers.players.daMes.Heuristica;
+import edu.upc.epsevg.prop.checkers.players.daMes.ElMeuStatus;
+import edu.upc.epsevg.prop.checkers.players.daMes.GameInfo;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import java.util.List;
 
 /**
@@ -25,8 +29,9 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
     private int prof_maxima; 
     private int nodes_explorats;
     private PlayerType jugador;
-    boolean timeout;
-    List<Point> millor_moviment = new ArrayList<>();
+    private boolean timeout;
+    private List<Point> millor_moviment = new ArrayList<>();
+    private HashMap<GameStatus, GameInfo> taula = new HashMap<>();
 
     public PlayerMiniMaxIDS() {
         name = "DaMesIDS";
@@ -115,18 +120,24 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
                     millor_h = Integer.MAX_VALUE;
                 }
                 List<MoveNode> movs = s.getMoves();
-                for (MoveNode mov : movs){
+                int escollit = 0;
+                ElMeuStatus sc = new ElMeuStatus(s);
+                //int k = sc.getHash(s.getCurrentPlayer());
+                int inicial = 0;
+                //Si esta el tauler, iniciem amb el millor moviment
+                for (int i = inicial; i < movs.size(); ++i){
+                    MoveNode mov = movs.get(i);
                     mov = s.getMoves(mov.getPoint(), s.getCurrentPlayer());
                     List<List<Point>> moviments = new ArrayList<>();
                     moviments = llistaPunts(mov, moviments);
                     for (List<Point> moviment : moviments){
                         if (!timeout){
                             if (beta > alpha){
-                                GameStatus s2 = new GameStatus(s);
+                                ElMeuStatus s2 = new ElMeuStatus(s);
                                 s2.movePiece(moviment);
                                 h = minimax(s2, prof+1, alpha, beta);
                                 if (prof % 2 == 0) {
-                                    if (prof == 0 && h > millor_h) millor_moviment = moviment;
+                                    if (prof == 0 && h > millor_h) millor_moviment = moviment; escollit = i;
                                     millor_h = Math.max(millor_h, h);
                                     alpha = Math.max(alpha, millor_h);
                                 }
@@ -138,12 +149,15 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
                         }
                     }
                 }
+                //si tenim mes nivells per sota, actualitza
+                //si no esta a la taula afegeix
+                
+
                 h = millor_h;
             }
         }
-        //System.out.println("A profunditat: " + prof + " heuristica = " + h);
+
         return h;
-     
     }
     
     /**
@@ -164,7 +178,8 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
         int maxprof_acabada = 0;
         while (!timeout){
             ++maxprof;
-            minimax(s, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            ElMeuStatus ms = new ElMeuStatus(s);
+            minimax(ms, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
             if (!timeout) {
                 moviment_seleccionat = millor_moviment;
                 maxprof_acabada = prof_maxima;

@@ -48,13 +48,6 @@ public class Heuristica {
     
     public int valor_heuristica(){
         int h = 0;
-        int[] fitxes = new int[2];
-        int[] reines = new int[2];
-        int[] ultima_fila = new int[2];
-        int[] extrems_centre = new int[2];
-        int[] centre_tauler = new int[2];
-        int[] salts = new int[2];
-        int[] protegides = new int[2];
         if (tauler.checkGameOver()){
         //algu guanya
             if (tauler.GetWinner() == jugador) return Integer.MAX_VALUE-1;
@@ -69,8 +62,6 @@ public class Heuristica {
             List<Point> fitxesSaltables = new ArrayList<>();
             PlayerType rival = PlayerType.PLAYER2;
             if (jugador == PlayerType.PLAYER2) rival = PlayerType.PLAYER1;
-            protegides[0] = tauler.getScore(jugador);
-            protegides[1] = tauler.getScore(rival);
             h += tauler.getScore(jugador);
             h -= tauler.getScore(rival);
             for (int j = 0; j < tauler.getSize(); ++j){
@@ -80,44 +71,47 @@ public class Heuristica {
                         PlayerType player = casella_actual.getPlayer();
                         MoveNode moviments = tauler.getMoves(new Point(i,j), player);
                         if (player == jugador){ 
-                            if (casella_actual.isQueen()){ ++reines[0]; h += 8;}
-                            else ++fitxes[0]; h+= 4;
-                            if (j == 0 && tauler.getYDirection(player) == 1) ++ultima_fila[0]; h += 1;
-                            if (j == tauler.getSize()-1 && tauler.getYDirection(player) == -1) ++ultima_fila[0]; h += 1;
+                            if (casella_actual.isQueen()) h += 8; //Sumar 8 si es dama
+                            else h+= 4; //Sumar 4 si es fitxa normal
+                            if (j == 0 && tauler.getYDirection(player) == 1)  h += 1; //Sumar 1 per les fitxes a la primera fila
+                            if (j == tauler.getSize()-1 && tauler.getYDirection(player) == -1)  h += 1; //Sumar 1 per les fitxes a la primera fila
                             if (j == 3 || j == 4) {
-                                if (i >= 2 && i <= 5){ ++centre_tauler[0]; h+= 2;}
-                                else ++extrems_centre[0]; h+= 1;
+                                if (i >= 2 && i <= 5)h+= 2; //Sumar 2 a les fitxes de la zona central
+                                else h+= 1; //Sumar 1 a les fitxes dels extrems de la zona central
                             }
                             if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()){
-                                ++salts[0];
-                                h += 3;
+                                h += 3; //Sumar 3 punts per fitxa que pot matar
                                 Point jumpedPoint = moviments.getChildren().get(0).getJumpedPoint();
                                 if (!fitxesSaltables.contains(jumpedPoint)){
                                     fitxesSaltables.add(jumpedPoint);
-                                    --protegides[1];
-                                    h += 3;
+                                    h += 6; //Sumar 3 punts per fitxa desprotegida del rival
                                 }
                             }
+                            
+                            h += moviments.getChildren().size(); //Sumar número de moviments possibles
+
+                            if (i >= 0 && i <= tauler.getSize()-1) ++h; //Sumar 1 si no està en els extrems
+                            
                         }
                         else {
-                            if (casella_actual.isQueen()){ ++reines[1]; h -= 8;}
-                            else ++fitxes[1]; h -= 4;
-                            if (j == 0 && tauler.getYDirection(player) == 1){ ++ultima_fila[1]; h -= 1;}
-                            if (j == tauler.getSize()-1 && tauler.getYDirection(player) == -1) ++ultima_fila[1]; h-= 1;
+                            if (casella_actual.isQueen())h -= 8;
+                            else h -= 4;
+                            if (j == 0 && tauler.getYDirection(player) == 1) h -= 1;
+                            if (j == tauler.getSize()-1 && tauler.getYDirection(player) == -1) h-= 1;
                             if (j == 3 || j == 4) {
-                                if (i >= 2 && i <= 5){ ++centre_tauler[1]; h-=2;}
-                                else ++extrems_centre[1];h-=1;
+                                if (i >= 2 && i <= 5) h-=2;
+                                else h-=1;
                             }
-                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()){
-                                ++salts[1];
+                            if (!moviments.getChildren().isEmpty() && moviments.getChildren().get(0).isJump()){       
                                 h -= 3;
                                 Point jumpedPoint = moviments.getChildren().get(0).getJumpedPoint();
                                 if (!fitxesSaltables.contains(jumpedPoint)){
                                     fitxesSaltables.add(jumpedPoint);
-                                    --protegides[0];
-                                    h -= 3;
+                                    h -= 6;
                                 }
                             }
+                            h -= moviments.getChildren().size();
+                            if (i >= 0 && i <= tauler.getSize()-1) --h;
                         }
                     }
                 }

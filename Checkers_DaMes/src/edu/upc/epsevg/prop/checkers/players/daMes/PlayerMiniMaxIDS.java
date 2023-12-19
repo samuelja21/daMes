@@ -124,7 +124,7 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
                             if (beta > alpha){
                                 GameStatus s2 = new GameStatus(s);
                                 s2.movePiece(moviment);
-                                h = minimax(s2, prof+1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                                h = minimax(s2, prof+1, alpha, beta);
                                 if (prof % 2 == 0) {
                                     if (prof == 0 && h > millor_h) millor_moviment = moviment;
                                     millor_h = Math.max(millor_h, h);

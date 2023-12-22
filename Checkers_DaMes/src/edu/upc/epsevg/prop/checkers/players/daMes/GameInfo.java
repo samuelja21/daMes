@@ -6,13 +6,23 @@ package edu.upc.epsevg.prop.checkers.players.daMes;
 
 /**
  *
- * @author c3895969
+ * @author Samuel i Oriol (DA+)
  */
 public class GameInfo {
     
     private int indexMillorMov; 
     private int nivellsPerSota; //maxprof - prof actual
+
+    public GameInfo(int indexMillorMov, int nivellsPerSota) {
+        this.indexMillorMov = indexMillorMov;
+        this.nivellsPerSota = nivellsPerSota;
+    }
     
+    public int getMillorMoviment(){
+        return indexMillorMov;
+    }
     
-    
+    public int getNivellsPerSota(){
+        return nivellsPerSota;
+    }
 }

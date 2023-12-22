@@ -164,7 +164,7 @@ public class PlayerMiniMax implements IPlayer, IAuto {
      */
     @Override
     public String getName() {
-        return "MinMax(" + name + ")";
+        return "MiniMax(" + name + ")";
     }
 
 }

@@ -14,7 +14,7 @@ import edu.upc.epsevg.prop.checkers.players.daMes.GameInfo;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+import edu.upc.epsevg.prop.checkers.players.daMes.Zobrist;
 import java.util.List;
 
 /**
@@ -31,10 +31,12 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
     private PlayerType jugador;
     private boolean timeout;
     private List<Point> millor_moviment = new ArrayList<>();
-    private HashMap<GameStatus, GameInfo> taula = new HashMap<>();
+    private HashMap<ElMeuStatus, GameInfo> taula = new HashMap<>();
+    private Zobrist z;
 
     public PlayerMiniMaxIDS() {
         name = "DaMesIDS";
+        z = new Zobrist();
     }
 
     @Override
@@ -98,7 +100,7 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
      * @param beta valor beta del minimax.
      * @return valor de la heuristica escollida.
      */
-    public int minimax(GameStatus s, int prof, int alpha, int beta){
+    public int minimax(ElMeuStatus s, int prof, int alpha, int beta){
         int h = 0;
         if (!timeout){
             prof_maxima = Math.max(prof_maxima, prof);
@@ -121,10 +123,10 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
                 }
                 List<MoveNode> movs = s.getMoves();
                 int escollit = 0;
-                ElMeuStatus sc = new ElMeuStatus(s);
-                //int k = sc.getHash(s.getCurrentPlayer());
                 int inicial = 0;
                 //Si esta el tauler, iniciem amb el millor moviment
+                if (taula.containsKey(s)) inicial = taula.get(s).getMillorMoviment();
+                //System.out.println(inicial);
                 for (int i = inicial; i < movs.size(); ++i){
                     MoveNode mov = movs.get(i);
                     mov = s.getMoves(mov.getPoint(), s.getCurrentPlayer());
@@ -151,7 +153,11 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
                 }
                 //si tenim mes nivells per sota, actualitza
                 //si no esta a la taula afegeix
-                
+                int nivellsSota = maxprof - prof;
+                if (!taula.containsKey(s) || taula.containsKey(s) && nivellsSota > taula.get(s).getNivellsPerSota()){
+                    GameInfo ginfo = new GameInfo(escollit,nivellsSota);
+                    taula.put(s, ginfo);
+                }
 
                 h = millor_h;
             }
@@ -176,15 +182,15 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
         maxprof = 0;
         List<Point> moviment_seleccionat = new ArrayList<>();
         int maxprof_acabada = 0;
+        ElMeuStatus ms = new ElMeuStatus(s);
+        ms.init_Zobrist(z);
         while (!timeout){
             ++maxprof;
-            ElMeuStatus ms = new ElMeuStatus(s);
             minimax(ms, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
             if (!timeout) {
                 moviment_seleccionat = millor_moviment;
                 maxprof_acabada = prof_maxima;
             }
-                
         }
         
         return new PlayerMove( moviment_seleccionat, nodes_explorats, maxprof_acabada, SearchType.MINIMAX);        
@@ -196,7 +202,7 @@ public class PlayerMiniMaxIDS implements IPlayer, IAuto {
      */
     @Override
     public String getName() {
-        return "MinMax(" + name + ")";
+        return "MinMaxIDS(" + name + ")";
     }
 
 }
